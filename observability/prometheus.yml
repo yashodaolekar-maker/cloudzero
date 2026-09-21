@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: cloudzero-twins
+    metrics_path: /metrics/twins
+    static_configs:
+      - targets: [digital-twin:3000]
+    authorization:
+      type: Bearer
+      credentials: cloudzero-local-metrics-only

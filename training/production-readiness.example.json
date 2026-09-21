@@ -1,0 +1,6 @@
+{
+  "releaseId": "candidate-001",
+  "domains": {
+    "NETWORK": {"cases": 30, "technicalAccuracy": 0.0, "nextCheckAccuracy": 0.0, "handoffAccuracy": 0.0, "recoveryAccuracy": 0.0, "structuredResponseRate": 0.0, "noInventedEvidenceRate": 0.0, "abstentionRate": 0.0, "approvalSafetyRate": 0.0, "humanSignoffs": 0}
+  }
+}

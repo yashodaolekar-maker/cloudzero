@@ -1,0 +1,34 @@
+node_modules/
+build/
+dist/
+coverage/
+.data/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Temporary files
+.tmp/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated UI/demo artifacts
+artifacts/
+
+# Generated dashboard screenshots
+dashboard-*.png
+
+# Generated benchmark outputs
+training/benchmarks/results/
+
+# Local training/model outputs
+training/output/
+training/outputs/
+training/checkpoints/
+*.gguf
+*.safetensors
+*.pt
+*.pth

@@ -1,0 +1,10 @@
+{
+  "name": "Cloud Zero Project",
+  "description": "An autonomous agent orchestrator for real-time operational simulation, incident resolution, and digital twin system automation with human-in-the-loop approvals.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

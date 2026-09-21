@@ -1,0 +1,58 @@
+{
+  "name": "react-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild src/server/command-proxy-simulator.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/command-proxy-simulator.cjs",
+    "start": "NODE_ENV=production node dist/server.cjs",
+    "clean": "rm -rf dist",
+    "lint": "tsc --noEmit",
+    "test:quantum": "tsx --test src/server/quantum/__tests__/*.test.ts",
+    "test:voice": "tsx --test src/server/voice/__tests__/*.test.ts",
+    "test:telemetry": "tsx --test src/server/telemetry/__tests__/*.test.ts",
+    "test:cyber": "tsx --test src/server/cyber/__tests__/*.test.ts",
+    "test:remediation": "tsx --test src/server/remediation/__tests__/*.test.ts",
+    "test:grounding": "tsx --test src/server/grounding/__tests__/*.test.ts src/server/agents/__tests__/*.test.ts",
+    "test:runtime": "tsx --test src/server/runtime/__tests__/*.test.ts",
+    "test:knowledge": "tsx --test src/server/knowledge/__tests__/*.test.ts",
+    "test:engineering": "tsx --test src/server/engineering/__tests__/*.test.ts",
+    "knowledge:ingest": "tsx scripts/ingest-knowledge-pdf.ts",
+    "knowledge:ingest-markdown": "tsx scripts/ingest-knowledge-markdown.ts",
+    "knowledge:query": "tsx scripts/query-knowledge.ts"
+  },
+  "dependencies": {
+    "@google-cloud/secret-manager": "^7.0.0",
+    "@google/genai": "^2.4.0",
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "google-auth-library": "^11.0.2",
+    "jose": "^6.2.10",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "pg": "^8.23.0",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.14.0",
+    "@types/pg": "^8.23.1",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.0",
+    "pdfjs-dist": "^6.3.289",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3"
+  },
+  "overrides": {
+    "qs": "6.16.0"
+  }
+}

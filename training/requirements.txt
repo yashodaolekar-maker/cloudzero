@@ -1,0 +1,7 @@
+# Install CUDA-enabled PyTorch separately for the NVIDIA driver on this laptop.
+# Isolated Python 3.11/3.12 environment. GPU path must be preflighted before training.
+transformers>=4.51,<5
+peft>=0.15,<1
+accelerate>=1.5,<2
+bitsandbytes>=0.45,<1
+safetensors>=0.5,<1

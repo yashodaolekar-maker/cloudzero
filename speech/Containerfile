@@ -1,0 +1,18 @@
+FROM docker.io/library/python:3.11-slim-bookworm
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-ng libsndfile1 build-essential \
+    && rm -rf /var/lib/apt/lists/*
+COPY speech/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt
+# Coqui 0.27.5 imports helpers removed in Transformers 5.
+RUN pip install --no-cache-dir transformers==4.57.6
+COPY proto/speech.proto /app/speech.proto
+RUN python -m grpc_tools.protoc -I/app --python_out=/app --grpc_python_out=/app /app/speech.proto
+COPY speech/service.py /app/service.py
+RUN groupadd --gid 10001 speech && useradd --uid 10001 --gid speech --no-create-home speech \
+    && mkdir -p /models && chown speech:speech /models
+ENV TTS_HOME=/models/coqui XDG_CACHE_HOME=/models/cache PYTHONUNBUFFERED=1 OMP_NUM_THREADS=2
+USER 10001:10001
+EXPOSE 50052
+CMD ["python", "/app/service.py"]

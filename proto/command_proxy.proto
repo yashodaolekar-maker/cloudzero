@@ -1,0 +1,45 @@
+syntax = "proto3";
+package cloudzero.commandproxy.v1;
+
+service CommandProxy {
+  rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse);
+  rpc ExchangeEvidence(AgentEvidenceMessage) returns (AgentEvidenceReceipt);
+  rpc StreamTelemetry(StreamTelemetryRequest) returns (stream TelemetryEnvelope);
+}
+
+message ExecuteCommandRequest {
+  string incident_id = 1;
+  string workflow_id = 2;
+  string device_id = 3;
+  string persona = 4;
+  string template_id = 5;
+  map<string, string> parameters = 6;
+  string correlation_id = 7;
+}
+
+message ExecuteCommandResponse {
+  string execution_id = 1;
+  string status = 2;
+  string output = 3;
+  string observed_at = 4;
+  string proxy_audit_id = 5;
+}
+
+message StreamTelemetryRequest { string incident_id = 1; string workflow_id = 2; }
+message AgentEvidenceMessage {
+  string incident_id = 1;
+  string workflow_id = 2;
+  string correlation_id = 3;
+  string sender = 4;
+  string recipient = 5;
+  string evidence_json = 6;
+  string candidate_actions_json = 7;
+}
+message AgentEvidenceReceipt {
+  string incident_id = 1;
+  string workflow_id = 2;
+  string correlation_id = 3;
+  string recipient = 4;
+  string status = 5;
+}
+message TelemetryEnvelope { string source = 1; string observed_at = 2; bytes payload = 3; }

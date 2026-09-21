@@ -1,0 +1,65 @@
+syntax = "proto3";
+package cloudzero.speech.v1;
+
+service SpeechService {
+  rpc Capabilities(CapabilitiesRequest) returns (CapabilitiesResponse);
+  rpc Transcribe(TranscribeRequest) returns (TranscribeResponse);
+  rpc Translate(TranslateRequest) returns (TranslateResponse);
+  rpc Synthesize(SynthesizeRequest) returns (SynthesizeResponse);
+}
+message CapabilitiesRequest {}
+message SpeechLanguage { string language = 1; string model = 2; bool ready = 3; }
+message CapabilitiesResponse {
+  bool whisper_ready = 1;
+  string whisper_model = 2;
+  repeated string transcription_languages = 3;
+  repeated SpeechLanguage synthesis_languages = 4;
+  bool busy = 5;
+}
+message TranscribeRequest {
+  string incident_id = 1;
+  string workflow_id = 2;
+  string correlation_id = 3;
+  bytes audio = 4;
+  string format = 5;
+  string language = 6;
+}
+message TranscribeResponse {
+  string incident_id = 1;
+  string workflow_id = 2;
+  string correlation_id = 3;
+  string text = 4;
+  string language = 5;
+  string model = 6;
+  double duration_seconds = 7;
+}
+message TranslateRequest {
+  string incident_id = 1;
+  string correlation_id = 2;
+  string text = 3;
+  string source_language = 4;
+  string target_language = 5;
+}
+message TranslateResponse {
+  string incident_id = 1;
+  string correlation_id = 2;
+  string text = 3;
+  string source_language = 4;
+  string target_language = 5;
+  string model = 6;
+}
+message SynthesizeRequest {
+  string incident_id = 1;
+  string correlation_id = 2;
+  string text = 3;
+  string language = 4;
+  string engine = 5;
+  string voice_preset = 6;
+}
+message SynthesizeResponse {
+  string incident_id = 1;
+  string correlation_id = 2;
+  bytes audio = 3;
+  string model = 4;
+  string language = 5;
+}

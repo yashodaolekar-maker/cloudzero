@@ -1,0 +1,251 @@
+name: cloudzero-local
+
+services:
+  digital-twin:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/cloudzero-digital-twin:local
+    container_name: cloudzero-digital-twin
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      DEPLOYMENT_PROFILE: LOCAL_SIMULATION
+      PORT: "3000"
+      INCIDENT_DATA_DIR: /app/.data
+      KNOWLEDGE_INDEX_DIR: /app/knowledge
+      KNOWLEDGE_INDEX_REQUIRED: "true"
+      DATABASE_URL: postgresql://cloudzero:admin@postgres:5432/cloudzero
+      ENABLE_A2A_DB_DEMO: "true"
+      DEMO_SEED_CATALOG: "true"
+      DEMO_DATABASE_URL: postgresql://demo_app:demo-app-local-only@demo-postgres:5432/cloudzero_demo
+      PRODUCTION_HARDENING: "true"
+      AUTH_REQUIRED: "true"
+      ENABLE_LOCAL_PERSONA: "false"
+      OPERATING_MODE: SIMULATION
+      ENABLE_LIVE_EXECUTION: "false"
+      TELEMETRY_MODE: SIMULATION
+      DIGITAL_TWIN_WORKER_ENABLED: "true"
+      CYBER_FUSION_ENABLED: "true"
+      CYBER_FUSION_POLL_MS: "60000"
+      CYBER_FUSION_HISTORY_LIMIT: "20"
+      CYBER_FUSION_AUTO_WORK_NOTES: "false"
+      SERVICENOW_INCIDENT_INGEST_ENABLED: "false"
+      ENABLE_SERVICENOW_WORK_NOTES: "false"
+      ENABLE_BRIDGE_AUDIO_PUBLISH: "false"
+      AUTO_GENERATE_INCIDENT_VOICE: "false"
+      ENABLE_LLM_TRANSLATION: "false"
+      GEMINI_ALLOW_MODEL_FALLBACK: "false"
+      AGENT_SHADOW_MODE: "true"
+      AGENT_COLLABORATION_VOICE_ENABLED: "true"
+      QI_EVIDENCE_INTERFERENCE_MODE: SHADOW
+      QI_HYPOTHESIS_SEARCH_MODE: SHADOW
+      QI_COUNTERFACTUAL_SIMULATION_MODE: SHADOW
+      QI_ANNEALING_ASSIGNMENT_MODE: SHADOW
+      QI_CHANGE_COLLISION_MODE: SHADOW
+      QI_QUBO_PLANNER_MODE: SHADOW
+      QI_TENSOR_COMPRESSION_MODE: SHADOW
+      COMMAND_PROXY_GRPC_ENDPOINT: command-proxy:50051
+      COMMAND_PROXY_ACCESS_TOKEN: local-simulation-token-change-me
+      SPEECH_GRPC_ENDPOINT: speech:50052
+      SPEECH_SERVICE_ACCESS_TOKEN: local-simulation-speech-token-change-me
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: cloudzero-qwen3:4b-q4_K_M
+      OLLAMA_FALLBACK_MODEL: qwen2.5:3b
+      OLLAMA_CONVERSATION_MODEL: qwen2.5:3b
+      OLLAMA_CONVERSATION_TIMEOUT_MS: "28000"
+      OLLAMA_TIMEOUT_MS: "30000"
+      TWIN_METRICS_TOKEN: cloudzero-local-metrics-only
+      TRAINING_CONTROL_URL: http://trainer:8091
+      TRAINING_CONTROL_TOKEN: cloudzero-local-training-control
+      GRAFANA_PUBLIC_URL: http://localhost:3001/d/cloudzero-twins
+    depends_on:
+      demo-postgres:
+        condition: service_healthy
+      command-proxy:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      speech:
+        condition: service_started
+      ollama:
+        condition: service_started
+    volumes:
+      - cloudzero_incident_data:/app/.data:Z
+      - ./.data/knowledge:/app/knowledge:ro,Z
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/readyz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  prometheus:
+    image: docker.io/prom/prometheus:v3.13.1
+    container_name: cloudzero-prometheus
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=90d"]
+    ports:
+      - "127.0.0.1:19090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
+      - cloudzero_prometheus_data:/prometheus:Z
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  grafana:
+    image: docker.io/grafana/grafana:13.1.0
+    container_name: cloudzero-grafana
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/twins.json
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro,Z
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro,Z
+      - cloudzero_grafana_data:/var/lib/grafana:Z
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  speech:
+    build:
+      context: .
+      dockerfile: speech/Containerfile
+    image: localhost/cloudzero-speech:local
+    container_name: cloudzero-speech
+    environment:
+      WHISPER_MODEL: small
+      TRANSLATION_MODEL: facebook/nllb-200-distilled-600M
+      BARK_MODEL: suno/bark-small
+      BARK_VOICE_PRESET: v2/en_speaker_6
+      XDG_CONFIG_HOME: /models/config
+      MPLCONFIGDIR: /models/config/matplotlib
+      SPEECH_SERVICE_ACCESS_TOKEN: local-simulation-speech-token-change-me
+    volumes:
+      - cloudzero_speech_models:/models:Z
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    container_name: cloudzero-ollama
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    volumes:
+      - cloudzero_ollama_models:/root/.ollama:Z
+    ports:
+      - "127.0.0.1:11434:11434"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  command-proxy:
+    image: localhost/cloudzero-digital-twin:local
+    container_name: cloudzero-command-proxy
+    command: ["node", "dist/command-proxy-simulator.cjs"]
+    environment:
+      NODE_ENV: production
+      OPERATING_MODE: SIMULATION
+      DEPLOYMENT_PROFILE: LOCAL_SIMULATION
+      ENABLE_A2A_DB_DEMO: "true"
+      DEMO_DATABASE_URL: postgresql://demo_proxy:demo-proxy-local-only@demo-postgres:5432/cloudzero_demo
+      COMMAND_PROXY_ACCESS_TOKEN: local-simulation-token-change-me
+    depends_on:
+      demo-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "const s=require('net').connect(50051,'127.0.0.1',()=>{s.end();process.exit(0)});s.setTimeout(3000,()=>process.exit(1));s.on('error',()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  demo-postgres:
+    image: docker.io/library/postgres:17-bookworm
+    container_name: cloudzero-demo-postgres
+    environment:
+      POSTGRES_DB: cloudzero_demo
+      POSTGRES_USER: demo_owner
+      POSTGRES_PASSWORD: demo-owner-local-only
+    volumes:
+      - cloudzero_demo_postgres_data:/var/lib/postgresql/data:Z
+      - ./db/demo:/docker-entrypoint-initdb.d:ro,Z
+    ports:
+      - "127.0.0.1:15433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo_owner -d cloudzero_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  postgres:
+    image: docker.io/library/postgres:17-bookworm
+    container_name: cloudzero-postgres
+    environment:
+      POSTGRES_DB: cloudzero
+      POSTGRES_USER: cloudzero
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - cloudzero_postgres_data:/var/lib/postgresql/data:Z
+      - ./db/init:/docker-entrypoint-initdb.d:ro,Z
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudzero -d cloudzero"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  cloudzero_demo_postgres_data:
+    name: cloudzero_demo_postgres_data
+  cloudzero_prometheus_data:
+    name: cloudzero_prometheus_data
+  cloudzero_grafana_data:
+    name: cloudzero_grafana_data
+  cloudzero_speech_models:
+    name: cloudzero_speech_models
+  cloudzero_incident_data:
+    name: cloudzero_incident_data
+  cloudzero_postgres_data:
+    name: cloudzero_postgres_data
+  cloudzero_ollama_models:
+    name: cloudzero_ollama_models

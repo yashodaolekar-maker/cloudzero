@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cloudzero://contracts/structured-contract-v4",
+  "title": "CloudZero structured-contract-v4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["domain", "technology", "vendor", "assessment", "observedFacts", "hypotheses", "missingEvidence", "nextDiagnosticAction", "toolSelection", "rootCause", "remediation", "risk", "rollback", "verification", "abstain", "abstentionReason", "escalateTo"],
+  "properties": {
+    "domain": {"type": "string"}, "technology": {"type": "string"}, "vendor": {"type": "string"}, "assessment": {"type": "string"},
+    "observedFacts": {"type": "array", "items": {"type": "string"}},
+    "hypotheses": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["cause", "status", "evidence"], "properties": {"cause": {"type": "string"}, "status": {"enum": ["SUSPECTED", "SUPPORTED", "CONFIRMED", "ELIMINATED", "INSUFFICIENT_EVIDENCE"]}, "evidence": {"type": "array", "items": {"type": "string"}}}}},
+    "missingEvidence": {"type": "array", "items": {"type": "string"}},
+    "nextDiagnosticAction": {"type": "object", "additionalProperties": false, "required": ["action", "reason"], "properties": {"action": {"type": "string"}, "reason": {"type": "string"}}},
+    "toolSelection": {"type": "object", "additionalProperties": false, "required": ["tool", "reason"], "properties": {"tool": {"type": "string"}, "reason": {"type": "string"}}},
+    "rootCause": {"type": "object", "additionalProperties": false, "required": ["state", "cause", "evidence"], "properties": {"state": {"enum": ["SUSPECTED", "SUPPORTED", "CONFIRMED", "ELIMINATED", "INSUFFICIENT_EVIDENCE"]}, "cause": {"type": "string"}, "evidence": {"type": "array", "items": {"type": "string"}}}},
+    "remediation": {"type": "string"}, "risk": {"type": "string"}, "rollback": {"type": "string"}, "verification": {"type": "string"},
+    "abstain": {"type": "boolean"}, "abstentionReason": {"type": "string"}, "escalateTo": {"type": "array", "items": {"type": "string"}}
+  }
+}

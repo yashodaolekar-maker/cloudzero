@@ -1,0 +1,42 @@
+name: cloudzero-training
+services:
+  trainer:
+    image: localhost/cloudzero-training:local
+    build:
+      context: ./training
+      dockerfile: Containerfile
+    container_name: cloudzero-training
+    ports:
+      - "127.0.0.1:8091:8091"
+    environment:
+      TRAINING_CONTROL_TOKEN: cloudzero-local-training-control
+    init: true
+    devices:
+      - nvidia.com/gpu=all
+    security_opt:
+      - label=disable
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - training_workspace:/workspace
+      - ./.data/training/infrastructure-local:/inputs:ro
+      - ./.data/training:/user-data:ro
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 3
+    restart: "no"
+    networks:
+      - default
+      - application
+volumes:
+  training_workspace:
+    name: cloudzero_training_workspace
+networks:
+  application:
+    external: true
+    name: cloudzero-local_default

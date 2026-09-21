@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: CloudZero twins
+    orgId: 1
+    folder: CloudZero
+    type: file
+    disableDeletion: true
+    editable: false
+    updateIntervalSeconds: 15
+    options:
+      path: /var/lib/grafana/dashboards

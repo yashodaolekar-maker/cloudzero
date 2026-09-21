@@ -1,0 +1,15 @@
+node_modules
+dist
+.data
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+artifacts
+*.log
+test-gemini.cjs
+.kilo
+.kilocode
+.qodo
+
