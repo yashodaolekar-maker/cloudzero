@@ -79,6 +79,14 @@ const outputLanguages: Array<{ code: OutputLanguage; label: string; speechTag: s
   { code: "kn", label: "Kannada", speechTag: "kn-IN" },
   { code: "ta", label: "Tamil", speechTag: "ta-IN" },
 ];
+const languageModelNames: Record<OutputLanguage, string> = {
+  en: "tts_models/en/ljspeech/vits",
+  es: "tts_models/es/css10/vits",
+  zh: "tts_models/zh-CN/baker/tacotron2-DDC-GST",
+  hi: "tts_models/hin/fairseq/vits",
+  kn: "tts_models/kan/fairseq/vits",
+  ta: "tts_models/tam/fairseq/vits"
+};
 
 const twinLabels: Record<string, string> = {
   NETWORK: "Network Digital Twin",
@@ -458,6 +466,11 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
 
     // Direct client-side engine bypass when in low latency mode or if server-side TTS previously failed.
     if (lowLatencyMode || serverTtsFailed) {
+      if (outputLanguageRef.current !== "en") {
+        setSpeakingState("idle");
+        console.warn("Multilingual server synthesis is unavailable; English browser fallback was intentionally blocked.");
+        return;
+      }
       speakNativeFallback(text);
       return;
     }
@@ -477,7 +490,9 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
       });
       const data = await response.json();
       
-      if (data.success && data.audio) {
+      const selectedLanguage = outputLanguageRef.current;
+      const localeVerified = data.language === selectedLanguage && (selectedLanguage === "en" || data.translated === true);
+      if (data.success && data.audio && localeVerified) {
         const audio = new Audio(data.audio);
         elevenLabsAudioRef.current = audio;
         
@@ -492,7 +507,11 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
           setSpeakingState("idle");
           elevenLabsAudioRef.current = null;
           setServerTtsFailed(true); // Flag server failure to instantly bypass next time
-          speakNativeFallback(text);
+          if (outputLanguageRef.current === "en") {
+            speakNativeFallback(text);
+          } else {
+            console.warn("Multilingual audio playback failed; English browser fallback was intentionally blocked.");
+          }
         };
 
         await audio.play();
@@ -508,7 +527,8 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
       window.clearTimeout(timeoutId);
     }
 
-    speakNativeFallback(text);
+    if (outputLanguageRef.current === "en") speakNativeFallback(text);
+    else setSpeakingState("idle");
   };
 
   const speakNativeFallback = (text: string) => {
@@ -1074,7 +1094,7 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
                       <div className="grid grid-cols-1 gap-1 text-[9px] text-slate-500 dark:text-zinc-400">
                         <p><strong className="text-slate-700 dark:text-zinc-200">Reasoning:</strong> {voicePipeline?.pipeline?.reasoning?.model || "local engineering model"} via Ollama</p>
                         <p><strong className="text-slate-700 dark:text-zinc-200">Speech input:</strong> browser recognition; Whisper {voicePipeline?.pipeline?.transcription?.model || "base"} is available in cloudzero-speech for uploaded incident audio</p>
-                        <p><strong className="text-slate-700 dark:text-zinc-200">Speech output:</strong> {ttsEngine === "bark" ? (voicePipeline?.pipeline?.synthesis?.conversationalModel || "Bark Small") : (voicePipeline?.pipeline?.synthesis?.defaultModel || "Coqui VITS")} in cloudzero-speech · {selectedLanguage.label}</p>
+                        <p><strong className="text-slate-700 dark:text-zinc-200">Speech output:</strong> {ttsEngine === "bark" ? (voicePipeline?.pipeline?.synthesis?.conversationalModel || "Bark Small") : languageModelNames[selectedLanguage.code]} in cloudzero-speech · {selectedLanguage.label}</p>
                       </div>
                     </div>
 
@@ -1094,7 +1114,7 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
                         <span>Server synthesis automatically translates the English Twin response before generating audio.</span>
                       </div>
                       <p className={`mt-2 text-[9px] ${matchingBrowserVoices.length ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
-                        {matchingBrowserVoices.length ? `${matchingBrowserVoices.length} installed browser voice${matchingBrowserVoices.length === 1 ? "" : "s"} match ${selectedLanguage.label}.` : `No installed browser voice matches ${selectedLanguage.label}. If server synthesis is unavailable, the browser will use ${selectedBrowserVoice?.name || "its default voice"} and read the original response without translation.`}
+                        {matchingBrowserVoices.length ? `${matchingBrowserVoices.length} installed browser voice${matchingBrowserVoices.length === 1 ? "" : "s"} match ${selectedLanguage.label}.` : `No installed browser voice matches ${selectedLanguage.label}. Server synthesis is required; English fallback is blocked.`}
                       </p>
                     </div>
 
@@ -1139,7 +1159,7 @@ export default function AgentsView({ agents, onOpenTwin }: AgentsViewProps) {
                           </option>
                         ))}
                       </select>
-                      <p className="text-[9px] text-slate-400 font-medium">Browser fallback for {selectedLanguage.label}: {selectedBrowserVoice ? `${selectedBrowserVoice.name} (${selectedBrowserVoice.lang})` : "system default"}. Matching voices are listed first.</p>
+                      <p className="text-[9px] text-slate-400 font-medium">{outputLanguage === "en" ? `Browser fallback: ${selectedBrowserVoice ? `${selectedBrowserVoice.name} (${selectedBrowserVoice.lang})` : "system default"}.` : `Server synthesis is required for ${selectedLanguage.label}; the browser will not silently read English.`} Matching voices are listed first.</p>
                       {!browserVoiceMatchesLanguage && selectedBrowserVoice && <p className="text-[9px] font-medium text-amber-700 dark:text-amber-300">Transparent fallback: this installed voice does not match {selectedLanguage.label}; pronunciation may differ and browser fallback reads the original response without translation.</p>}
                     </div>
 

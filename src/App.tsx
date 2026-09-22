@@ -15,6 +15,7 @@ import SettingsHubView from "./components/SettingsHubView";
 import CyberFusionView from "./components/CyberFusionView";
 import TwinWorkspaceView from "./components/TwinWorkspaceView";
 import InvestigationView from "./components/InvestigationView";
+import SopKnowledgeView from "./components/SopKnowledgeView";
 import { 
   SSOUser, 
   DigitalTwinAgent, 
@@ -639,6 +640,10 @@ export default function App() {
           />
         )}
 
+        {activeTab === "sop-library" && (
+          <SopKnowledgeView currentUser={currentUser} incidents={incidents} />
+        )}
+
         {activeTab === "servicenow" && (
           selectedIncidentId ? <InvestigationView
             incident={incidents.find(item => item.id === selectedIncidentId)}
@@ -650,6 +655,7 @@ export default function App() {
             crossSiloWorkflows={crossSiloWorkflows}
             evidence={dashboardAggregates?.find(item => item.incidentId === selectedIncidentId)?.evidence}
             rawEvents={incidentEvents}
+            currentUser={currentUser}
             onSelectIncident={openInvestigation}
             onBack={closeInvestigation}
             onTakeover={handleTakeoverIncident}

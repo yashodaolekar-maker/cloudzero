@@ -8,6 +8,7 @@ import {
   Database,
   FileText,
   KeyRound,
+  LibraryBig,
   LayoutDashboard,
   LogIn,
   Menu,
@@ -77,7 +78,7 @@ export default function Sidebar({
     { id: "agents", label: "Digital Twin", icon: Cpu },
     { id: "activity", label: "Activity", icon: Activity, badgeCount: pendingCount },
   ];
-  const groups: NavigationGroup[] = [{ id: "configuration", label: "Configuration", items: [{ id: "settings", label: "Settings", icon: Settings }] }];
+  const groups: NavigationGroup[] = [{ id: "configuration", label: "Configuration", items: [{ id: "sop-library", label: "SOP Library", icon: LibraryBig }, { id: "settings", label: "Settings", icon: Settings }] }];
   const activeGroupId = groups.find((group) => group.items.some((item) => item.id === activeTab))?.id;
   const [expanded, setExpanded] = useState<Record<GroupId, boolean>>({
     intelligence: activeGroupId === "intelligence",

@@ -73,7 +73,10 @@ services:
         condition: service_started
     volumes:
       - cloudzero_incident_data:/app/.data:Z
-      - ./.data/knowledge:/app/knowledge:ro,Z
+      # Runtime SOP attachment writes validated, hash-addressed index artifacts
+      # only inside this dedicated knowledge mount; the rest of the container
+      # remains read-only.
+      - ./.data/knowledge:/app/knowledge:Z
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=64m

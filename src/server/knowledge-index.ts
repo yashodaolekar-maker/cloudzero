@@ -189,7 +189,7 @@ export class DocumentKnowledgeStore {
     return this.status;
   }
 
-  search(query: string, limit = 4): KnowledgeSearchResult[] {
+  search(query: string, limit = 4, completePassage = false): KnowledgeSearchResult[] {
     const queryTerms = terms(query).slice(0, 24);
     if (!queryTerms.length || !this.chunks.length) return [];
     const navigationRequested = /\b(?:chapter|contents|section|page|where in the (?:book|guide))\b/i.test(query);
@@ -211,7 +211,7 @@ export class DocumentKnowledgeStore {
       .sort((left, right) => right.score - left.score || left.chunk.pageStart - right.chunk.pageStart || left.chunk.id.localeCompare(right.chunk.id))
       .slice(0, Math.max(1, Math.min(limit, 6)))
       .map(item => ({
-        excerpt: focusedExcerpt(item.chunk.text, queryTerms),
+        excerpt: completePassage ? cleanText(item.chunk.text, 5_000) : focusedExcerpt(item.chunk.text, queryTerms),
         citation: {
           documentId: item.chunk.documentId,
           documentTitle: item.chunk.documentTitle,
