@@ -1,23 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
-
-# Run and deploy your AI Studio app
-
-> Production status: the included Podman deployment is a hardened, loopback-only simulation—not an approved production remediation service. Review [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) for implemented controls, release blockers, and the local runbook.
-
-> Local document knowledge: see [KNOWLEDGE_INGESTION.md](./KNOWLEDGE_INGESTION.md) for page-cited PDF ingestion, integrity validation, and agent abstention behavior.
-
-> Local containers: see [PODMAN_LOCAL.md](./PODMAN_LOCAL.md) for the application, PostgreSQL, and gRPC proxy Podman stack.
-
-> Architecture diagrams: see [ARCHITECTURE_VISUALS.md](./ARCHITECTURE_VISUALS.md) for system, investigation, remediation, and Podman workflow visuals.
-
-> Client production configuration: see [CLIENT_DEPLOYMENT.md](./CLIENT_DEPLOYMENT.md) for identity, ServiceNow, SolarWinds, Catalyst Center, SD-WAN, firewall, mTLS, secret, and go-live requirements.
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/b6a1ad87-42d1-4be2-adae-a9c656123471
-
 ## Run Locally
 
 **Prerequisites:**  Node.js
